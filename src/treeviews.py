@@ -23,7 +23,7 @@ class MerlinTree(Treeview):
             self.rootGUI = parent
         else:
             self.rootGUI = root
-        
+
         
         self.bind('<Button-1>', self.rootGUI.mouseclick)
         self.bind('<B1-Motion>', self.rootGUI.movemouse)
@@ -142,8 +142,7 @@ class MerlinMainTree(MerlinTree):
             # self.heading(key, text=key, anchor=tk.W)
         
         self.tag_configure("directory", foreground="grey")
-        
-    
+
     def populate(self, items, thumbnails, overwrite):
         if overwrite:
             # clear existing data
@@ -416,7 +415,8 @@ class MerlinMainTree(MerlinTree):
             return
         with open(filepath, 'rb') as stream:
             if IsImageProgressive(stream):
-                tk.messagebox.showwarning(title="Problème de format", message=f"Le format de l'image est JPEG 'progressive'. Ce format n'est pas pris en charge par toutes les Merlin.")
+                tk.messagebox.showwarning(title="Problème de format",
+                                          message=f"Le format de l'image est JPEG 'progressive'. Ce format n'est pas pris en charge par toutes les Merlin.")
         dirname, basename = os.path.split(filepath)
         root, ext = os.path.splitext(basename)
         # check length
@@ -461,7 +461,7 @@ class MerlinMainTree(MerlinTree):
                         # if not answer:
                             # return
                     # with Image.open(filepath) as image:
-                        # image_thumbnail = image.resize((128,128), Image.ANTIALIAS)
+                        # image_thumbnail = image.resize((128,128), Image.LANCZOS)
                         # image_thumbnail.save(new_filepath, "JPEG", mode='RGB')
                     # filepath = new_filepath
                     # dirname, basename = os.path.split(filepath)
@@ -486,13 +486,13 @@ class MerlinMainTree(MerlinTree):
                         # if not answer:
                             # return
                     # with Image.open(filepath) as image:
-                        # image_thumbnail = image.resize((128,128), Image.ANTIALIAS)
+                        # image_thumbnail = image.resize((128,128), Image.LANCZOS)
                         # image_thumbnail.save(new_filepath, "JPEG", mode='RGB')
                     # filepath = new_filepath
                     # dirname, basename = os.path.split(filepath)
                 
         with Image.open(filepath) as image:
-            image_small = image.resize((40, 40), Image.ANTIALIAS)
+            image_small = image.resize((40, 40), Image.LANCZOS)
             self.rootGUI.thumbnails[uuid] = ImageTk.PhotoImage(image_small)
         
         self.item(current_node, image=self.rootGUI.thumbnails[uuid])

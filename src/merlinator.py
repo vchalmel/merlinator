@@ -6,7 +6,5 @@
 
 from main_gui import MerlinGUI
 
-
-    
 root = MerlinGUI()
 root.mainloop()

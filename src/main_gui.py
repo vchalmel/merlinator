@@ -4,7 +4,6 @@
 # "MIT License Agreement". Please see the LICENSE file
 # that should have been included as part of this package.
 
-
 import tkinter as tk
 from tkinter import ttk, filedialog, simpledialog
 from PIL import Image
@@ -14,6 +13,7 @@ import os.path, zipfile
 from io_utils import *
 from treeviews import MerlinMainTree, MerlinFavTree
 from gui_actions import *
+
 try:
     from audio import AudioWidget
     enable_audio = True
@@ -78,7 +78,7 @@ class MerlinGUI(GUIActions):
         self.main_tree_area = tk.LabelFrame(self.main_paned_window, text="Playlist", width=450)
         self.main_tree_area.grid_rowconfigure(0, weight=1)
         self.main_tree_area.grid_columnconfigure(0, weight=1)
-        self.main_tree_area.grid_propagate(0)
+        self.main_tree_area.grid_propagate(False)
         self.main_paned_window.add(self.main_tree_area)
         
         style = ttk.Style()
@@ -93,6 +93,7 @@ class MerlinGUI(GUIActions):
         self.control_frame.grid_columnconfigure(0, weight=1)
         self.control_frame.grid_columnconfigure(1, weight=1)
         self.control_frame.grid_propagate(0)
+        self.control_frame.grid_propagate(False)
         self.main_paned_window.add(self.control_frame, sticky="nsew")
         
         # Title / Sound 
@@ -128,26 +129,13 @@ class MerlinGUI(GUIActions):
         self.buttonDelete.grid(row=1, column=1, sticky='ew')
         self.buttonAddMenu.grid(row=0, column=0, sticky='ew')
         self.buttonAddSound.grid(row=1, column=0, sticky='ew')
-        
-        
-        # Displacement Buttons
-        self.main_tree_button_area = tk.LabelFrame(self.control_frame, text='Déplacer\nélément', width=60)
-        self.main_tree_button_area.grid(row=2, column=0, sticky='nw')
-        
-        self.buttonMoveUp = tk.Button(self.main_tree_button_area, text="\u21D1", width=8, state='disabled', command=self.main_tree.moveUp)
-        self.buttonMoveUp.grid(row=0, column=0)
-        self.buttonMoveParentDir = tk.Button(self.main_tree_button_area, text="\u21D0", width=8, state='disabled', command=self.main_tree.moveParentDir)
-        self.buttonMoveParentDir.grid(row=1, column=0)
-        self.buttonMoveDown = tk.Button(self.main_tree_button_area, text="\u21D3", width=8, state='disabled', command=self.main_tree.moveDown)
-        self.buttonMoveDown.grid(row=2, column=0)
-         
-         
+
         # Favorite tree area
         self.fav_tree_area = tk.LabelFrame(self.control_frame, text="Favoris", width=200)
         self.fav_tree_area.grid_rowconfigure(0, weight=1)
         self.fav_tree_area.grid_columnconfigure(0, weight=1)
         self.fav_tree_area.grid(row=4, column=0, columnspan=2, sticky='nsew')
-        self.fav_tree_area.grid_propagate(0)
+        self.fav_tree_area.grid_propagate(False)
         self.make_fav_tree(self.fav_tree_area)
         
         #Favorite Button
@@ -160,11 +148,9 @@ class MerlinGUI(GUIActions):
         self.buttonMoveUpFav.grid(row=0, column=0)
         self.buttonMoveDownFav = tk.Button(self.fav_tree_button_area, text="\u21D3",fg="black", width=8, state='disabled', command=self.fav_tree.moveDown)
         self.buttonMoveDownFav.grid(row=0, column=1)
-        
-        
+
         self.update()
-        
-        
+
         self.bind("<BackSpace>", self.main_tree.deleteNode)
         self.bind("<Delete>", self.main_tree.deleteNode)
         
@@ -175,8 +161,6 @@ class MerlinGUI(GUIActions):
         self.bind("<Control-e>", lambda event:self.export_playlist())
         self.bind("<Control-x>", lambda event:self.export_all_to_zip())
 
-
-        
     def make_main_tree(self, parent):
         self.main_tree = MerlinMainTree(parent, self)
         main_tree = self.main_tree
@@ -191,7 +175,6 @@ class MerlinGUI(GUIActions):
         main_tree['xscrollcommand']=self.scroll_mx.set
         self.scroll_mx.config( command = main_tree.xview )
         
-    
     def make_fav_tree(self, parent):
         self.fav_tree = MerlinFavTree(parent, self)
         fav_tree = self.fav_tree
@@ -208,12 +191,10 @@ class MerlinGUI(GUIActions):
         self.scroll_fx.grid(row=1, column=0, sticky=tk.E+tk.W)
         fav_tree['xscrollcommand']=self.scroll_fx.set
         self.scroll_fx.config( command = fav_tree.xview )
-        
 
     def populate_trees(self, items, overwrite=True):
         self.main_tree.populate(items, self.thumbnails, overwrite)
         self.fav_tree.populate(self.main_tree, overwrite)
-        
 
     def load_thumbnails(self, items, overwrite=True):
         if overwrite:
@@ -225,16 +206,16 @@ class MerlinGUI(GUIActions):
             if os.path.exists(imagepath):
                 with open(imagepath, "rb") as imagestream:
                     if IsImageProgressive(imagestream):
-                        tk.messagebox.showwarning(title="Problème de format", message=f"Le format de l'image '{imagepath}' est JPEG 'progressive'. Ce format n'est pas pris en charge par toutes les Merlin.")
+                        tk.messagebox.showwarning(title="Problème de format",
+                                                  message=f"Le format de l'image '{imagepath}' est JPEG 'progressive'. Ce format n'est pas pris en charge par toutes les Merlin.")
                         self.thumbnails[item['uuid']] = ''
                         continue
                 with Image.open(imagepath) as image:
-                    image_small = image.resize((40, 40), Image.ANTIALIAS)
+                    image_small = image.resize((40, 40), Image.LANCZOS)
                     self.thumbnails[item['uuid']] = PhotoImage(image_small)
             else:
                 self.thumbnails[item['uuid']] = ''
-                
-    
+
     def load_thumbnails_from_zip(self, items, zfile, overwrite=True):
         if overwrite:
             self.thumbnails = {}
@@ -251,21 +232,19 @@ class MerlinGUI(GUIActions):
                         continue
                 with zfile.open(filename, 'r', pwd=info) as imagefile:
                     with Image.open(imagefile) as image:
-                        image_small = image.resize((40, 40), Image.ANTIALIAS)
+                        image_small = image.resize((40, 40), Image.LANCZOS)
                         self.thumbnails[item['uuid']] = PhotoImage(image_small)
             else:
                 self.thumbnails[item['uuid']] = ''    
                 
     def load_image(self):
         filename = "merlinator_64px.ico"
-        with zipfile.ZipFile('../res/defaultPics.zip', 'r') as zfile:
+        with zipfile.ZipFile('../res/defaultPics.zip', 'r', strict_timestamps=False) as zfile:
             zippath = zipfile.Path(zfile, at=filename)
             if zippath.exists():
                 with zfile.open(filename, 'r', pwd=info) as imagefile:
                     with Image.open(imagefile) as image:
                         self.iconphoto(False, PhotoImage(image))
-
-
 
     def import_playlist(self):
         filepath = filedialog.askopenfilename(initialfile="playlist.bin", filetypes=[('tous types supportés', '*.bin;*.zip'), ('binaire', '*.bin'), ('fichier zip', '*.zip')])
@@ -315,8 +294,7 @@ class MerlinGUI(GUIActions):
             self.buttonAddSound['state'] = 'normal'
         except IOError:
             tk.messagebox.showwarning("Erreur", "Fichier non accessible")
-          
-          
+
     def export_playlist(self):
         t = self.main_tree
         if not t.get_children(''):
@@ -328,7 +306,6 @@ class MerlinGUI(GUIActions):
                 write_merlin_playlist(file, items)
         except IOError:
             tk.messagebox.showwarning("Erreur", "Fichier non accessible")     
-   
 
     def export_all_to_zip(self):
         t = self.main_tree
@@ -336,7 +313,7 @@ class MerlinGUI(GUIActions):
             return
         filepath = filedialog.asksaveasfilename(initialfile="merlin.zip", filetypes=[('archive zip', '*.zip')])
         try:
-            with zipfile.ZipFile(filepath, 'w') as zfile:
+            with zipfile.ZipFile(filepath, 'w', strict_timestamps=False) as zfile:
                 items = self.main_tree.make_item_list()
                 files_not_found = export_merlin_to_zip(items, zfile)
             if files_not_found:
@@ -382,7 +359,6 @@ class MerlinGUI(GUIActions):
         except IOError:
             tk.messagebox.showwarning("Erreur", "Fichier non accessible") 
 
-            
     def load_session(self):
         filepath = filedialog.askopenfilename(initialfile="merlinator.json", filetypes=[('fichier json', '*.json')])
         if not filepath:
@@ -391,6 +367,7 @@ class MerlinGUI(GUIActions):
             file = open(filepath, 'r')
             self.sessionpath = filepath
             self.sessionfile = file
+            self.playlistpath = filepath
             items = json.loads(self.sessionfile.read())
             file.close()
             self.load_thumbnails(items)
@@ -399,9 +376,7 @@ class MerlinGUI(GUIActions):
             self.buttonAddSound['state'] = 'normal'
         except IOError:
             tk.messagebox.showwarning("Erreur", "Fichier non accessible")        
-        
 
-        
     def clear_temp_variables(self, event=None):
         self.moveitem.set('')
         self.src_widget = None
@@ -418,8 +393,7 @@ class MerlinGUI(GUIActions):
         self.save_cursor = t['cursor'] or ''
         if self.moveitem.get():
             t['cursor'] = "hand2"
-            
-    
+
     def mouserelease(self, event):
         t = event.widget
         t['cursor'] = self.save_cursor
@@ -512,8 +486,3 @@ class MerlinGUI(GUIActions):
         t.update()
         moveitem.set("")
         self.src_widget = None
-
-    
-        
-
-

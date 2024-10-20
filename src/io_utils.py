@@ -158,7 +158,7 @@ def export_merlin_to_zip(items, zfile):
                 if imagepath[-4:] == '.jpg':
                     if os.path.exists(imagepath):
                         with Image.open(imagepath) as image:
-                            image_icon = image.resize((128,128), Image.ANTIALIAS)
+                            image_icon = image.resize((128,128), Image.LANCZOS)
                             with zfile.open(filename, "w") as fout:
                                 image_icon.save(fout, "JPEG", mode='RGB', optimize=False, progressive=False)
                     else:
@@ -180,7 +180,7 @@ def export_merlin_to_zip(items, zfile):
                     if os.path.exists(soundpath):
                         zfile.write(soundpath, filename)
                     else:
-                        file_not_found.append(soundpath)
+                        files_not_found.append(soundpath)
                 else:
                     try:
                         with zipfile.ZipFile(soundpath, "r") as zin:
